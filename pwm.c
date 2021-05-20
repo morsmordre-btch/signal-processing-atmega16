@@ -1,10 +1,3 @@
-/*
- * pwm.c
- *
- * Created: 12.04.2020 12:42:00
- *  Author: kosty
- */ 
-
 #include "pwm.h"
 
 uint32_t counterISR_INT0 = 0;
@@ -17,12 +10,12 @@ unsigned char regBuffer[LENGTH_BUF][2];
 unsigned char buff_i = 0;
 
 
-//обработчик прерывания по INT0
+//РѕР±СЂР°Р±РѕС‚С‡РёРє РїСЂРµСЂС‹РІР°РЅРёв‚¬ РїРѕ INT0
 ISR(INT0_vect){
 	counterISR_INT0++;
 }
 
-//обработчик прерывания по Timer0
+//РѕР±СЂР°Р±РѕС‚С‡РёРє РїСЂРµСЂС‹РІР°РЅРёв‚¬ РїРѕ Timer0
 ISR(TIMER0_OVF_vect) {
 	TCNT0 = 0x05;
 	counterISR_T0++;
@@ -30,8 +23,8 @@ ISR(TIMER0_OVF_vect) {
 		counterISR_T0 = 0;
 		comparePWM = 533*counterISR_INT0/16000;
 		OCR1A = comparePWM;
-		regBuffer[buff_i][0] = counterISR_INT0 >> 8;		//запись ст. байта
-		regBuffer[buff_i][1] = counterISR_INT0 & 0xFF;		//запись мл. байта
+		regBuffer[buff_i][0] = counterISR_INT0 >> 8;		//Р·Р°РїРёСЃСЊ СЃС‚. Р±Р°Р№С‚Р°
+		regBuffer[buff_i][1] = counterISR_INT0 & 0xFF;		//Р·Р°РїРёСЃСЊ РјР». Р±Р°Р№С‚Р°
 		buff_i++;
 		buff_i &= BUF_MASK_1;
 		counterISR_INT0 = 0;
@@ -39,14 +32,14 @@ ISR(TIMER0_OVF_vect) {
 }
 
 void init_ISR_INT0(void) {
-	//по переднему  фронту
+	//РїРѕ РїРµСЂРµРґРЅРµРјСѓ  С„СЂРѕРЅС‚Сѓ
 	MCUCR |= (1 << ISC01)|(1 << ISC00);
-	//разрешение прерываний по INT0 
+	//СЂР°Р·СЂРµС€РµРЅРёРµ РїСЂРµСЂС‹РІР°РЅРёР№ РїРѕ INT0 
 	GICR |= (1 << INT0);
 }
 
 void init_T0(void) {
-	//разрешение прерывания от Timer0 по переполнению
+	//СЂР°Р·СЂРµС€РµРЅРёРµ РїСЂРµСЂС‹РІР°РЅРёв‚¬ РѕС‚ Timer0 РїРѕ РїРµСЂРµРїРѕР»РЅРµРЅРёСЋ
 	TIMSK |= (1 << TOIE0);
 	TCNT0 = 0xFA;
 	//		  FOC0     
@@ -85,11 +78,11 @@ void init_PWM(void) {
 	//		  ||||||||
 	//		  76543210
 	TCCR1B |= 0b00011001;
-	//считать будет до 533 для 15кГц
+	//СЃС‡РёС‚Р°С‚СЊ Р±СѓРґРµС‚ РґРѕ 533 РґР»в‚¬ 15Рєв€љС†
 	ICR1 = 533;
-	//cравниваемая величина
+	//cСЂР°РІРЅРёРІР°РµРјР°в‚¬ РІРµР»РёС‡РёРЅР°
 	OCR1A = 266;
-	//Настройка ножки OC1A как выход:
+	//РЊР°СЃС‚СЂРѕР№РєР° РЅРѕР¶РєРё OC1A РєР°Рє РІС‹С…РѕРґ:
 	DDRD |= (1 << PD5);
 	
 	init_ISR_INT0();

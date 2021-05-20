@@ -1,9 +1,3 @@
-/*
- * main.h
- *
- * Created: 11.04.2020 13:46:37
- *  Author: kosty
- */ 
 #define F_CPU 8000000UL
 
 #define LENGTH_BUF 128

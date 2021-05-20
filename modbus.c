@@ -1,9 +1,3 @@
-/*
- * modbus.c
- *
- * Created: 22.04.2020 23:18:49
- *  Author: kosty
- */ 
 #include "modbus.h"
 
 #define ID_SLAVE 0x01
@@ -13,32 +7,32 @@ extern unsigned char regBuffer[LENGTH_BUF][2];
 unsigned char counterTimout = 0;
 static unsigned char modbusRX[8] = {0};
 unsigned char modbusTX[255];
-//счетчик принятых байтов по modbus
+//СЃС‡РµС‚С‡РёРє РїСЂРёРЅСЏС‚С‹С… Р±Р°Р№С‚РѕРІ РїРѕ modbus
 unsigned char modbus_i = 0;
-//длина принятого сообщения
+//РґР»РёРЅР° РїСЂРёРЅСЏС‚РѕРіРѕ СЃРѕРѕР±С‰РµРЅРёСЏ
 unsigned char modbusRX_length = 0;
 
-//обработчик прерывания по приему по UART
+//РѕР±СЂР°Р±РѕС‚С‡РёРє РїСЂРµСЂС‹РІР°РЅРёСЏ РїРѕ РїСЂРёРµРјСѓ РїРѕ UART
 ISR(USART_RXC_vect){
 	T2_STOP;
 	TCNT2 = 0x1F;
-	//проверка на ошибку кадра
+	//РїСЂРѕРІРµСЂРєР° РЅР° РѕС€РёР±РєСѓ РєР°РґСЂР°
 	if (UCSRA & (1<<FE))
 		return;
 	modbusRX[modbus_i] = UDR;
-	//сброс бита завершения приема
+	//СЃР±СЂРѕСЃ Р±РёС‚Р° Р·Р°РІРµСЂС€РµРЅРёСЏ РїСЂРёРµРјР°
 	UCSRA &= 0b01111111;
 	modbus_i++;
 	counterTimout = 0;
 	T2_RUN;
 }
 
-//обработчик прерывания по Timer0
+//РѕР±СЂР°Р±РѕС‚С‡РёРє РїСЂРµСЂС‹РІР°РЅРёСЏ РїРѕ Timer0
 ISR(TIMER2_OVF_vect) {
 	TCNT2 = 0x1F;
 	counterTimout++;
-	//если timout то идем на разбор посылки
-	//13 переполнений - это время равное 3.5 символам со скоростью 9600 бод (13)
+	//РµСЃР»Рё timout С‚Рѕ РёРґРµРј РЅР° СЂР°Р·Р±РѕСЂ РїРѕСЃС‹Р»РєРё
+	//13 РїРµСЂРµРїРѕР»РЅРµРЅРёР№ - СЌС‚Рѕ РІСЂРµРјСЏ СЂР°РІРЅРѕРµ 3.5 СЃРёРјРІРѕР»Р°Рј СЃРѕ СЃРєРѕСЂРѕСЃС‚СЊСЋ 9600 Р±РѕРґ (13)
 	if (counterTimout == 130){
 		T2_STOP;
 		modbusRX_length = modbus_i;
@@ -50,24 +44,24 @@ ISR(TIMER2_OVF_vect) {
 void modbusRun(void) {
 	uint16_t crc;
 	
-	//если длина сообщения 1, то это байт для управления DAC
+	//РµСЃР»Рё РґР»РёРЅР° СЃРѕРѕР±С‰РµРЅРёСЏ 1, С‚Рѕ СЌС‚Рѕ Р±Р°Р№С‚ РґР»СЏ СѓРїСЂР°РІР»РµРЅРёСЏ DAC
 	if (modbusRX_length == 1){
-		//вызов функции управления DAC
+		//РІС‹Р·РѕРІ С„СѓРЅРєС†РёРё СѓРїСЂР°РІР»РµРЅРёСЏ DAC
 		control_DAC(modbusRX[0]);
-		//вывод принятого на дисплей
+		//РІС‹РІРѕРґ РїСЂРёРЅСЏС‚РѕРіРѕ РЅР° РґРёСЃРїР»РµР№
 		convertAndSend(modbusRX[0]);
 		return;
 	}
 	
-	//проверка на совпадение адреса
+	//РїСЂРѕРІРµСЂРєР° РЅР° СЃРѕРІРїР°РґРµРЅРёРµ Р°РґСЂРµСЃР°
 	if (modbusRX[0] != ID_SLAVE){
 		return;
 	}
 	
-	//проверка CRC
+	//РїСЂРѕРІРµСЂРєР° CRC
 	crc = modbusCRC(modbusRX, modbusRX_length - 2);
 	if ( (modbusRX[modbusRX_length-2] == (crc & 0x00FF)) && (modbusRX[modbusRX_length-1] == (crc >> 8)) ) {
-		//выбор функции
+		//РІС‹Р±РѕСЂ С„СѓРЅРєС†РёРё
 		switch (modbusRX[1]) {
 			case 0x04:
 				readInputRegisters();
@@ -83,15 +77,15 @@ void readInputRegisters(void) {
 	unsigned char addressReg_i = 0;
 	uint16_t crc = 0;
 	unsigned char modbusTX_length = 0;
-	modbusTX[0] = modbusRX[0];							//адрес устройства
-	modbusTX[1] = modbusRX[1];							//код функции
-	//вычисление адреса первого регистра
-	addressRegister = (modbusRX[2] << 8) + modbusRX[3];	//начальный адрес
-	quantityRegister = (modbusRX[4] << 8) + modbusRX[5];//количество регистров
-	modbusTX[2] = 2*quantityRegister;					//количество байт далее
+	modbusTX[0] = modbusRX[0];							//Р°РґСЂРµСЃ СѓСЃС‚СЂРѕР№СЃС‚РІР°
+	modbusTX[1] = modbusRX[1];							//РєРѕРґ С„СѓРЅРєС†РёРё
+	//РІС‹С‡РёСЃР»РµРЅРёРµ Р°РґСЂРµСЃР° РїРµСЂРІРѕРіРѕ СЂРµРіРёСЃС‚СЂР°
+	addressRegister = (modbusRX[2] << 8) + modbusRX[3];	//РЅР°С‡Р°Р»СЊРЅС‹Р№ Р°РґСЂРµСЃ
+	quantityRegister = (modbusRX[4] << 8) + modbusRX[5];//РєРѕР»РёС‡РµСЃС‚РІРѕ СЂРµРіРёСЃС‚СЂРѕРІ
+	modbusTX[2] = 2*quantityRegister;					//РєРѕР»РёС‡РµСЃС‚РІРѕ Р±Р°Р№С‚ РґР°Р»РµРµ
 	for (addressReg_i = 0; addressReg_i < quantityRegister; addressReg_i++){
-		modbusTX[3+2*addressReg_i] = regBuffer[addressRegister+addressReg_i][0];		//запись на отправку значения регистра Hi
-		modbusTX[4+2*addressReg_i] = regBuffer[addressRegister+addressReg_i][1];		//запись на отпрваку значения регистра Lo
+		modbusTX[3+2*addressReg_i] = regBuffer[addressRegister+addressReg_i][0];		//Р·Р°РїРёСЃСЊ РЅР° РѕС‚РїСЂР°РІРєСѓ Р·РЅР°С‡РµРЅРёСЏ СЂРµРіРёСЃС‚СЂР° Hi
+		modbusTX[4+2*addressReg_i] = regBuffer[addressRegister+addressReg_i][1];		//Р·Р°РїРёСЃСЊ РЅР° РѕС‚РїСЂРІР°РєСѓ Р·РЅР°С‡РµРЅРёСЏ СЂРµРіРёСЃС‚СЂР° Lo
 	}
 	modbusTX_length = 3 + 2*(addressReg_i) + 2;
 	crc = modbusCRC(modbusTX, modbusTX_length - 2);
@@ -106,7 +100,7 @@ void modbusTransmit(unsigned char modbusTX_length) {
 	for (modbusTX_i = 0; modbusTX_i < modbusTX_length; modbusTX_i++) {
 		tx_UART(modbusTX[modbusTX_i]);
 	}
-	//ножка для приема по 485
+	//РЅРѕР¶РєР° РґР»СЏ РїСЂРёРµРјР° РїРѕ 485
 	PORTD = PORTD & 0b11110111;
 }
 
@@ -116,12 +110,12 @@ void modbusReset(void){
 	modbus_i = 0;
 	counterTimout = 0;
 	TCNT2 = 0x1F;
-	//ножка для приема по 485
+	//РЅРѕР¶РєР° РґР»СЏ РїСЂРёРµРјР° РїРѕ 485
 	PORTD = PORTD & 0b11110111;
 }
 
 
-unsigned int modbusCRC(unsigned char *buf, char bufsize) //Функция расчитывающая CRC16
+unsigned int modbusCRC(unsigned char *buf, char bufsize) //Р¤СѓРЅРєС†РёСЏ СЂР°СЃС‡РёС‚С‹РІР°СЋС‰Р°СЏ CRC16
 {
 	unsigned int crc = 0xFFFF;
 	unsigned char pos = 0, CRC_i;
@@ -143,7 +137,7 @@ unsigned int modbusCRC(unsigned char *buf, char bufsize) //Функция расчитывающая
 	return crc;
 }
 
-//настройка Timer2 для отсчета timeout для MODBUS
+//РЅР°СЃС‚СЂРѕР№РєР° Timer2 РґР»СЏ РѕС‚СЃС‡РµС‚Р° timeout РґР»СЏ MODBUS
 void init_T2(void) {
 	//		  FOC0
 	//		  |WGM00
@@ -155,7 +149,7 @@ void init_T2(void) {
 	//		  |||||||CS00
 	//		  ||||||||
 	//		  76543210
-	//разрешение прерывания от Timer2 по переполнению
+	//СЂР°Р·СЂРµС€РµРЅРёРµ РїСЂРµСЂС‹РІР°РЅРёСЏ РѕС‚ Timer2 РїРѕ РїРµСЂРµРїРѕР»РЅРµРЅРёСЋ
 	TIMSK |= (1 << TOIE2);
 	TCNT2 = 0x1F;
 }

@@ -1,10 +1,3 @@
-/*
- * dac.c
- *
- * Created: 15.04.2020 1:08:23
- *  Author: kosty
- */ 
-
 #include "dac.h"
 
 

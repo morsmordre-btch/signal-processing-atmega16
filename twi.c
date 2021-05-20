@@ -1,14 +1,7 @@
-/*
- * twi.c
- *
- * Created: 13.04.2020 9:37:30
- *  Author: kosty
- */ 
-
 #include "twi.h"
 
 void init_I2C(void) {
-	TWBR = 0x20;			//скорость передачи 100кГц
+	TWBR = 0x20;			//СЃРєРѕСЂРѕСЃС‚СЊ РїРµСЂРµРґР°С‡Рё 100Рєв€љС†
 }
 
 void I2C_StartCondition(void) {

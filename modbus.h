@@ -1,11 +1,3 @@
-/*
- * modbus.h
- *
- * Created: 22.04.2020 23:18:37
- *  Author: kosty
- */ 
-
-
 #ifndef MODBUS_H_
 #define MODBUS_H_
 	#include "main.h"

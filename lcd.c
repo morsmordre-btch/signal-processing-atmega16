@@ -1,13 +1,6 @@
-/*
- * lcd.c
- *
- * Created: 13.04.2020 14:23:02
- *  Author: kosty
- */ 
-
 #include "lcd.h"
 
-unsigned char lcdPort = 0;	//для хранения данных порта микросхемы расишерния
+unsigned char lcdPort = 0;	//РґР»СЏ С…СЂР°РЅРµРЅРёСЏ РґР°РЅРЅС‹С… РїРѕСЂС‚Р° РјРёРєСЂРѕСЃС…РµРјС‹ СЂР°СЃРёС€РµСЂРЅРёСЏ
 
 unsigned char asciiNum[10] =  { 0x30,	//0
 								0x31,	//1
@@ -37,8 +30,8 @@ void init_LCD() {
 	_delay_ms(1);
 	sendByte(0b00000110, 0);
 	_delay_ms(1);
-	setLed();			//подсветка
-	setWrite();			//установка записи в память дисплея
+	setLed();			//РїРѕРґСЃРІРµС‚РєР°
+	setWrite();			//СѓСЃС‚Р°РЅРѕРІРєР° Р·Р°РїРёСЃРё РІ РїР°РјСЏС‚СЊ РґРёСЃРїР»РµСЏ
 }
 
 void clearLcd(void) {

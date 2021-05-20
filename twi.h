@@ -1,11 +1,3 @@
-/*
- * twi.h
- *
- * Created: 13.04.2020 9:37:21
- *  Author: kosty
- */ 
-
-
 #ifndef TWI_H_
 #define TWI_H_
 	#include "main.h"
